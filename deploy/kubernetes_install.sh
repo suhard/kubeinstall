@@ -20,13 +20,11 @@ then
 	HASH=$5
 fi
 
-echo "*** Avoid kernel upgrades ***"
-# Disable Auto Upgrade
-cat << EOF | tee -a /etc/apt/apt.conf.d/50unattended-upgrades
-APT::Periodic::Update-Package-Lists "1"; APT::Periodic::Unattended-Upgrade "0";
-EOF
+echo "*** Avoid annoying kernel upgrades ***"
+# Disable Auto Upgrade :)
+apt purge -y needrestart
 # Hold Kernel update from apt upgrade
-apt-mark hold linux-generic linux-headers-generic linux-image-generic
+apt-mark hold $(uname -r) linux-generic linux-headers-generic linux-image-generic
 
 echo "*** Install needed packages ***"
 apt update
@@ -54,23 +52,16 @@ sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
 echo "*** Install kube* packages ***"
 # We use the new k8s.io repositories
 # https://kubernetes.io/blog/2023/08/15/pkgs-k8s-io-introduction/
-# pinned to rel. v1.30
+# pinned to rel. v1.31
 
 KUBERNETES_INSTALLED=$(which kubeadm)
 if [ "$KUBERNETES_INSTALLED" = "" ]
 then
-	curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-	echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
+	curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+	echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
 	apt update
 	apt install -y kubeadm kubelet kubectl kubernetes-cni
 fi
-#Installing Kubernetes using the kubadm command
-kubeadm init --pod-network-cidr=10.244.0.0/16 \
-             --apiserver-advertise-address=0.0.0.0 \
-                  --apiserver-cert-extra-sans="$ADDR" \
-                       --apiserver-bind-port 8443 \
-                            --kubernetes-version="stable-1"
-
 
 # Initialize Kubernetes as Master node
 if [ "$NODE_TYPE" == "master" ]
@@ -85,8 +76,7 @@ then
 		--apiserver-advertise-address=$MASTER_IP $POD_NETWORK_ARG \
                   	--apiserver-cert-extra-sans="$MASTER_IP" \
 		  	--apiserver-bind-port 8443 \
-                        --kubernetes-version="stable-1"
-
+                        
 	mkdir -p $HOME/.kube
 	cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 	chown $(id -u):$(id -g) $HOME/.kube/config
