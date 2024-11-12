@@ -20,6 +20,14 @@ then
 	HASH=$5
 fi
 
+echo "*** Avoid kernel upgrades ***"
+# Disable Auto Upgrade
+cat << EOF | tee -a /etc/apt/apt.conf.d/50unattended-upgrades
+APT::Periodic::Update-Package-Lists "1"; APT::Periodic::Unattended-Upgrade "0";
+EOF
+# Hold Kernel update from apt upgrade
+apt-mark hold linux-generic linux-headers-generic linux-image-generic
+
 echo "*** Install needed packages ***"
 apt update
 apt install -y --no-install-recommends curl ebtables bash-completion
