@@ -1,0 +1,55 @@
+#!/bin/bash
+# @description: Cleaning up a Kubernetes cluster 
+# @description: Based on szefoka/openfaas_lab and danielkeszei/thesis_scripts
+
+# Variable(s)
+
+# Script variable(s)
+PID=$$
+SCRIPTNAME="$(basename $0)"
+WORKER_LIST="worker.list"
+
+# Functions
+
+#FIXME Write usage message
+function usage {
+cat << EOF
+
+EOF
+
+}
+
+## Send error messages to stderr
+function echo_err {
+	echo "Error: $@" >&2
+}
+
+
+## Check file from parameters
+if [ ! -f $WORKER_LIST ]; then
+	echo_err "Worker list file ($WORKER_LIST) not exists."
+	exit 1
+fi
+
+## Check the file contents
+if [ ! -s $WORKER_LIST ]; then
+	echo_err "Worker list file ($WORKER_LIST) is empty."
+	exit 1
+fi
+
+## Create WORKER array from file
+readarray WORKER < $WORKER_LIST
+
+# Reset Master node
+./withdraw/node_reset.sh
+rm -rf ~/.kube
+
+# Reset the workers0
+for LINE in $(cat $WORKER_LIST | grep -vE "^#"); do
+	WORKERNAME=`echo $LINE | awk -F"/" '{print $NF}'`
+
+	echo "[worker:$WORKERNAME] Evicating..."
+	ssh $WORKERNAME -o "StrictHostKeyChecking no" "bash -s" < ./withdraw/node_reset.sh
+
+	echo "[worker:$WORKERNAME] Eviction is completed."
+done
