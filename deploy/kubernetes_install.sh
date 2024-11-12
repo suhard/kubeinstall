@@ -57,13 +57,13 @@ sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
 echo "*** Install kube* packages ***"
 # We use the new k8s.io repositories
 # https://kubernetes.io/blog/2023/08/15/pkgs-k8s-io-introduction/
-# pinned to rel. v1.31
+# pinned to rel. v1.30
 
 KUBERNETES_INSTALLED=$(which kubeadm)
 if [ "$KUBERNETES_INSTALLED" = "" ]
 then
-	curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-	echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
+	curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+	echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
 	apt update
 	apt install -y kubeadm kubelet kubectl kubernetes-cni
 fi
@@ -78,10 +78,11 @@ then
 	fi
 	## Init Kubernetes
 	kubeadm init --ignore-preflight-errors=SystemVerification \
-		--apiserver-advertise-address=$MASTER_IP $POD_NETWORK_ARG \
+			--apiserver-advertise-address=$MASTER_IP $POD_NETWORK_ARG \
                   	--apiserver-cert-extra-sans="$MASTER_IP" \
 		  	--apiserver-bind-port 8443 \
-                        
+                        --kubernetes-version="stable-1"
+			
 	mkdir -p $HOME/.kube
 	cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 	chown $(id -u):$(id -g) $HOME/.kube/config
@@ -90,8 +91,8 @@ then
 
 	echo "[master:$(hostname -s)] Node is up and running on $MASTER_IP"
 
-	echo "*** Waiting 60 secs for the API server to initialize...  ***"
-	sleep 60
+	echo "*** Waiting 120 secs for the API server to initialize...  ***"
+	sleep 120
 
 	echo "*** Install kubectl tab completion ***"
 	mkdir -p /etc/bash_completion.d
