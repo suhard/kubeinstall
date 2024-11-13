@@ -82,12 +82,12 @@ then
                   	--apiserver-cert-extra-sans="$MASTER_IP" \
 		  	--apiserver-bind-port 8443 \
                         --kubernetes-version="stable-1"
-			
+   	## Configuring kubectl access 
 	mkdir -p $HOME/.kube
-	cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-	chown $(id -u):$(id -g) $HOME/.kube/config
-	export KUBECONFIG=$HOME/.kube/admin.conf
-	echo "export KUBECONFIG=$HOME/.kube/admin.conf" | tee -a ~/.bashrc
+	sudo cp /etc/kubernetes/admin.conf $HOME/.kube/
+	sudo chown $(id -u):$(id -g) $HOME/.kube/*
+	export KUBECONFIG=$HOME/.kube/config
+	echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
 
 	echo "[master:$(hostname -s)] Node is up and running on $MASTER_IP"
 
