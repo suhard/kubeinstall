@@ -84,7 +84,7 @@ then
                         --kubernetes-version="stable-1"
    	## Configuring kubectl access 
 	mkdir -p $HOME/.kube
-	sudo cp /etc/kubernetes/admin.conf $HOME/.kube/
+	sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
 	sudo chown $(id -u):$(id -g) $HOME/.kube/*
 	export KUBECONFIG=$HOME/.kube/config
 	echo "export KUBECONFIG=$HOME/.kube/config" | tee -a ~/.bashrc
