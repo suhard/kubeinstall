@@ -80,7 +80,7 @@ then
 	kubeadm init --ignore-preflight-errors=SystemVerification \
 			--apiserver-advertise-address=$MASTER_IP $POD_NETWORK_ARG \
                   	--apiserver-cert-extra-sans="$MASTER_IP" \
-		  	--apiserver-bind-port 8443 \
+		  	--apiserver-bind-port 6443 \
                         --kubernetes-version="stable-1"
    	## Configuring kubectl access 
 	mkdir -p $HOME/.kube
